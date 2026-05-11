@@ -1,0 +1,22 @@
+# raw data (tools/download.py and tools/record.py rebuild it): the trade history is ~1 GB, the tape grows by ~100 MB an hour
+data/raw/deribit/trades_*.parquet
+data/raw/deribit/instruments_*.json
+data/raw/deribit/dvol_*.json
+data/raw/tape/
+data/raw/dolt/
+data/raw/*.log
+# derived tables rebuilt by `python -m optmm tape` / `python -m optmm run`; the small ones under data/derived are committed
+data/derived/tape/
+data/derived/*.duckdb
+data/derived/*.duckdb.wal
+data/derived/block_prints.parquet
+data/derived/pickoff.parquet
+# builds
+build/
+*.pyd
+*.so
+__pycache__/
+*.pyc
+.pytest_cache/
+results/*.log
+results/tests.txt

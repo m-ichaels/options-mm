@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "optmm"
+version = "0.1.0"
+description = "Options market-making engine: arbitrage-free surfaces (SSVI/SVI), a quoting engine replayed on recorded Deribit books with fills from the prints, an RFQ structure pricer and the microstructure of quoting"
+requires-python = ">=3.10"
+dependencies = ["numpy", "pandas", "pyarrow", "duckdb", "scipy", "matplotlib", "fpdf2", "websockets", "pybind11"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.setuptools]
+packages = ["optmm"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
