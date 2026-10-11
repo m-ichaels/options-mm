@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""README.md from scripts/README.template.md and results/run.json:  python scripts/readme.py [results]"""
+"""README.md and docs/method.md from scripts/README.template.md, scripts/method.template.md and results/run.json:  python scripts/readme.py [results]"""
 import glob
 import json
 import os
@@ -102,11 +102,24 @@ for p in glob.glob(os.path.join(ROOT, "tests", "test_*.py")):
     n_tests += len(re.findall(r"^def test_", open(p, encoding="utf-8").read(), re.M))
 v["n_tests"] = str(n_tests)
 
-tpl = open(os.path.join(ROOT, "scripts", "README.template.md"), encoding="utf-8").read()
-missing = sorted(set(re.findall(r"\{\{(\w+)\}\}", tpl)) - set(v))
-if missing:
-    print("missing:", missing)
-out = re.sub(r"\{\{(\w+)\}\}", lambda m: v.get(m.group(1), "{{" + m.group(1) + "}}"), tpl)
-with open(os.path.join(ROOT, "README.md"), "w", encoding="utf-8", newline="\n") as fh:
-    fh.write(out)
-print("wrote README.md")
+# share of headline fills whose per-contract option fee exceeds the spread captured at the print (against Deribit's mark), from the committed fill records
+v["fee_gt_n"] = v["fee_gt_total"] = v["fee_gt_share"] = "n/a"
+try:
+    import pandas as pd
+    fl = pd.read_parquet(os.path.join(ROOT, "data", "derived", "mm_fills.parquet"))
+    fl = fl[fl["quoter"].isin(["market", "surface", "aware"])]
+    gt = (fl["fee_usd"] / fl["amount"]) > (fl["spread_capture_usd"] / fl["amount"])
+    v["fee_gt_n"] = str(int(gt.sum())); v["fee_gt_total"] = str(len(fl)); v["fee_gt_share"] = f(float(gt.mean()), 0, pct=True)
+except Exception as e:
+    print("fee share not computed:", e)
+
+for tname, out_path in (("README.template.md", os.path.join(ROOT, "README.md")), ("method.template.md", os.path.join(ROOT, "docs", "method.md"))):
+    tpl = open(os.path.join(ROOT, "scripts", tname), encoding="utf-8").read()
+    missing = sorted(set(re.findall(r"\{\{(\w+)\}\}", tpl)) - set(v))
+    if missing:
+        print("missing:", missing)
+    out = re.sub(r"\{\{(\w+)\}\}", lambda m: v.get(m.group(1), "{{" + m.group(1) + "}}"), tpl)
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    with open(out_path, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write(out)
+    print("wrote", os.path.relpath(out_path, ROOT))
